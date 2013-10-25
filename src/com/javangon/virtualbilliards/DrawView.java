@@ -18,8 +18,8 @@ public class DrawView extends View implements OnGestureListener {
 
 	public static final String TAG = "DrawView"; 
 	
-	private int friction = 5;
-	private float scale = 1.0f; 
+	private float friction = .3f;
+	private float scale = .25f; 
 	
 	private float xmin = 0.0f;
 	private float xmax;
@@ -46,11 +46,11 @@ public class DrawView extends View implements OnGestureListener {
 	}
 	
 	public void incrementScale() {
-		scale += .1;
+		scale += .01;
 	}
 	
 	public void decrementScale() {
-		scale -= .1;
+		scale -= .01;
 	}
 	
 	public void clearTable() {
@@ -76,7 +76,8 @@ public class DrawView extends View implements OnGestureListener {
 			ball.xpos = scale * ball.xvel + ball.xpos;
 			ball.ypos = scale * ball.yvel + ball.ypos;
 			if (ball.xvel > -friction && ball.xvel < friction) 
-				ball.xvel = 0f;
+				ball.xvel *= .8;
+//				ball.xvel = 0f;
 			else {
 				if (ball.xvel < 0)
 					ball.xvel += friction;
@@ -84,7 +85,8 @@ public class DrawView extends View implements OnGestureListener {
 					ball.xvel -= friction;
 			}
 			if (ball.yvel > -friction && ball.yvel < friction) 
-				ball.yvel = 0f;
+				ball.yvel *=.8;
+//				ball.yvel = 0f;
 			else {
 				if (ball.yvel < 0)
 					ball.yvel += friction;
@@ -122,7 +124,37 @@ public class DrawView extends View implements OnGestureListener {
 
 	@Override
 	public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-		return false;
+		float x = e1.getX();
+		float y = e1.getY();
+		
+		float xlow = x - Ball.radius;
+		float xhigh = x + Ball.radius;
+		float ylow = y - Ball.radius;
+		float yhigh = y + Ball.radius;
+		
+		boolean found = false;
+		
+		boolean gtXlow;
+		boolean ltXhigh;
+		boolean gtYlow;
+		boolean ltYhigh;
+		boolean betweenXbounds;
+		boolean betweenYbounds;
+		for(int i = 0; i < ballList.size() && !found; i++) {
+			Ball ball = ballList.get(i);
+			gtXlow = ball.xpos >= xlow;
+			ltXhigh = ball.xpos <= xhigh;
+			gtYlow = ball.ypos >= ylow;
+			ltYhigh = ball.ypos <= yhigh;
+			betweenXbounds = gtXlow && ltXhigh;
+			betweenYbounds = gtYlow && ltYhigh;
+			if(betweenXbounds && betweenYbounds) {
+				found = true;
+				ball.xvel = velocityX/5*scale;
+				ball.yvel = velocityY/5*scale;
+			}
+		}
+		return true;
 	}
 
 	@Override
